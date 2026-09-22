@@ -46,5 +46,14 @@ public class PlayerController : MonoBehaviour
             float currentSpeed = moveDirection.magnitude * moveSpeed;
             animator.SetFloat("Speed", currentSpeed);
         }
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            BallController ball = FindFirstObjectByType<BallController>();
+            if (ball != null)
+            {
+                // "Player" 태그를 넘겨주어 무작위 Enemy를 타겟팅하도록 함
+                ball.ParryBall("Player");
+            }
+        }
     }
 }
