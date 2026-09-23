@@ -8,32 +8,17 @@ public class BallController : MonoBehaviour
     public float maxSpeed = 80.0f;       // 최대 제한 속도
     public float speedMultiplier = 1.15f;// 쳐낼 때마다 속도 증가 비율 (15%)
 
-    [Tooltip("유도 추적 속도")]
-    public float homingSpeed = 25.0f;    // 타겟이 움직일 때 따라가는 유도력
+    [Tooltip("패링 직후 직선으로 튕겨 나가는 시간(초)")]
+    public float initialStraightTime = 0.25f; // 이 시간 동안은 앞으로 튕겨나감
+
+    [Tooltip("타겟을 향해 꺾이는 회전 속도")]
+    public float turnSpeed = 15.0f;       // 높을수록 타겟으로 빠르게 꺾임
 
     [Header("이펙트 (선택)")]
     public GameObject destroyEffectPrefab; // 충돌 파괴 이펙트
 
     private float currentSpeed;
-    private Rigidbody rb;
-
-    void Awake()
-    {
-        // 공이 다른 캐릭터를 밀어내지 못하도록 물리 연산 끄기
-        rb = GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            rb.isKinematic = true;  // 물리적 힘/충돌을 받지 않음
-            rb.useGravity = false;  // 중력 무시
-        }
-
-        // 콜라이더 트리거 강제 설정
-        Collider col = GetComponent<Collider>();
-        if (col != null)
-        {
-            col.isTrigger = true;  // 밀지 않고 그냥 통과하도록 설정
-        }
-    }
+    private float straightTimer = 0f; // 직진 타이머
 
     void Start()
     {
@@ -47,17 +32,25 @@ public class BallController : MonoBehaviour
     {
         if (targetTransform == null) return;
 
-        // 1. 실시간으로 타겟의 현재 위치 방향 계산 (타겟 높이 +1m)
-        Vector3 targetDirection = (targetTransform.position + Vector3.up * 1.0f - transform.position).normalized;
-
-        if (targetDirection != Vector3.zero)
+        // 1. 패링 직후 일정 시간(initialStraightTime)이 지난 후에만 타겟 방향으로 회전(유도) 시작
+        if (straightTimer > 0f)
         {
-            // 2. 타겟을 향해 매 프레임 실시간으로 빠르게 회전
-            Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, homingSpeed * 10f * Time.deltaTime);
+            straightTimer -= Time.deltaTime;
+        }
+        else
+        {
+            // 타겟 위치 조준 (높이 +1m)
+            Vector3 targetDirection = (targetTransform.position + Vector3.up * 1.0f - transform.position).normalized;
+
+            if (targetDirection != Vector3.zero)
+            {
+                // 타겟을 향해 부드럽게 꺾이면서 회전
+                Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
+            }
         }
 
-        // 3. 현재 바라보고 있는 방향으로 전진
+        // 2. 바라보는 방향으로 계속 전진
         transform.position += transform.forward * currentSpeed * Time.deltaTime;
     }
 
@@ -118,36 +111,41 @@ public class BallController : MonoBehaviour
         }
     }
 
-    // 새로운 타겟을 정하고 방향 전환
+    // 새로운 타겟을 정하고 튕겨나가는 타이머 리셋
     private void SetNewTarget(Transform newTarget)
     {
         targetTransform = newTarget;
 
-        // 패링하자마자 즉시 새 타겟 방향을 조준
+        // 쳐낸 순간 정면으로 튕겨 나가도록 타이머 설정
+        straightTimer = initialStraightTime;
+
+        // 쳐낸 주체의 정면(또는 공의 반사 방향)으로 회전 살짝 변경
         Vector3 targetDirection = (targetTransform.position + Vector3.up * 1.0f - transform.position).normalized;
         if (targetDirection != Vector3.zero)
         {
-            transform.rotation = Quaternion.LookRotation(targetDirection);
+            // 완벽히 타겟을 안 바라보고, 정면과 타겟의 중간 지점으로 시작 각도를 부여해 자연스러운 궤적 연출
+            Vector3 startDir = Vector3.Lerp(transform.forward, targetDirection, 0.3f);
+            transform.rotation = Quaternion.LookRotation(startDir);
         }
     }
 
-    // 충돌 시 판정: 오직 지정된 타겟에게 부딪혔을 때만 파괴!
+    // 충돌 시 부딪힌 대상과 공 둘 다 파괴
     private void OnTriggerEnter(Collider other)
     {
-        // 부딪힌 대상이 현재 지목된 targetTransform과 일치하는지 검사
-        if (targetTransform != null && other.transform == targetTransform)
+        // Player 또는 Enemy 태그를 가진 캐릭터에 부딪혔을 때
+        if (other.CompareTag("Player") || other.CompareTag("Enemy"))
         {
-            Debug.Log("Target Hit! Destroying: " + other.name + " and Ball.");
+            Debug.Log("Collision Detected! Destroying: " + other.name + " and Ball.");
 
             if (destroyEffectPrefab != null)
             {
                 Instantiate(destroyEffectPrefab, transform.position, Quaternion.identity);
             }
 
-            // 1. 피격당한 타겟 파괴
+            // 1. 부딪힌 캐릭터 파괴
             Destroy(other.gameObject);
 
-            // 2. 공 파괴
+            // 2. 공 오브젝트 파괴
             Destroy(gameObject);
         }
     }
