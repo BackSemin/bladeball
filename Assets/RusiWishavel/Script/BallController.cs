@@ -9,22 +9,40 @@ public class BallController : MonoBehaviour
     public float speedMultiplier = 1.15f;// 쳐낼 때마다 속도 증가 비율 (15%)
 
     [Tooltip("패링 직후 직선으로 튕겨 나가는 시간(초)")]
-    public float initialStraightTime = 0.25f; // 이 시간 동안은 앞으로 튕겨나감
+    public float initialStraightTime = 0.25f;
 
     [Tooltip("타겟을 향해 꺾이는 회전 속도")]
-    public float turnSpeed = 15.0f;       // 높을수록 타겟으로 빠르게 꺾임
+    public float turnSpeed = 15.0f;
+
+    [Header("거리 기반 피격 판정")]
+    public float hitDistanceThreshold = 0.8f;
 
     [Header("이펙트 (선택)")]
-    public GameObject destroyEffectPrefab; // 충돌 파괴 이펙트
+    public GameObject destroyEffectPrefab;
 
     private float currentSpeed;
-    private float straightTimer = 0f; // 직진 타이머
+    private float straightTimer = 0f;
+    private Rigidbody rb;
 
-    void Start()
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
+
+        Collider col = GetComponent<Collider>();
+        if (col != null)
+        {
+            col.isTrigger = true;
+        }
+    }
+
+    void OnEnable()
     {
         currentSpeed = baseSpeed;
-
-        // 게임 시작 시 무작위 타겟 선정
         SelectInitialTarget();
     }
 
@@ -32,29 +50,32 @@ public class BallController : MonoBehaviour
     {
         if (targetTransform == null) return;
 
-        // 1. 패링 직후 일정 시간(initialStraightTime)이 지난 후에만 타겟 방향으로 회전(유도) 시작
+        Vector3 targetCenterPos = targetTransform.position + Vector3.up * 1.0f;
+
         if (straightTimer > 0f)
         {
             straightTimer -= Time.deltaTime;
         }
         else
         {
-            // 타겟 위치 조준 (높이 +1m)
-            Vector3 targetDirection = (targetTransform.position + Vector3.up * 1.0f - transform.position).normalized;
-
+            Vector3 targetDirection = (targetCenterPos - transform.position).normalized;
             if (targetDirection != Vector3.zero)
             {
-                // 타겟을 향해 부드럽게 꺾이면서 회전
                 Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
             }
         }
 
-        // 2. 바라보는 방향으로 계속 전진
         transform.position += transform.forward * currentSpeed * Time.deltaTime;
+
+        // 거리 기반 피격 판정
+        float distanceToTarget = Vector3.Distance(transform.position, targetCenterPos);
+        if (distanceToTarget <= hitDistanceThreshold)
+        {
+            ExecuteTargetHit();
+        }
     }
 
-    // 게임 시작 시 Player 또는 Enemy 중 무작위 첫 타겟 지정
     private void SelectInitialTarget()
     {
         GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
@@ -68,15 +89,9 @@ public class BallController : MonoBehaviour
         {
             int randomIndex = Random.Range(0, allTargets.Count);
             SetNewTarget(allTargets[randomIndex].transform);
-            Debug.Log("Game Start! First Target: " + targetTransform.name + " (" + targetTransform.tag + ")");
-        }
-        else
-        {
-            Debug.LogWarning("No Player or Enemy tag found in the scene!");
         }
     }
 
-    // 공을 쳐냈을 때 반대편 타겟으로 전환 (패링)
     public void ParryBall(string hitterTag)
     {
         Transform nextTarget = null;
@@ -101,52 +116,44 @@ public class BallController : MonoBehaviour
 
         if (nextTarget != null)
         {
-            // 속도 증가
             currentSpeed = Mathf.Min(currentSpeed * speedMultiplier, maxSpeed);
-
-            // 새 타겟 설정
             SetNewTarget(nextTarget);
-
-            Debug.Log("[" + hitterTag + "] Parry Success! Next Target: " + targetTransform.name + " (Speed: " + currentSpeed.ToString("F1") + ")");
         }
     }
 
-    // 새로운 타겟을 정하고 튕겨나가는 타이머 리셋
     private void SetNewTarget(Transform newTarget)
     {
         targetTransform = newTarget;
-
-        // 쳐낸 순간 정면으로 튕겨 나가도록 타이머 설정
         straightTimer = initialStraightTime;
 
-        // 쳐낸 주체의 정면(또는 공의 반사 방향)으로 회전 살짝 변경
         Vector3 targetDirection = (targetTransform.position + Vector3.up * 1.0f - transform.position).normalized;
         if (targetDirection != Vector3.zero)
         {
-            // 완벽히 타겟을 안 바라보고, 정면과 타겟의 중간 지점으로 시작 각도를 부여해 자연스러운 궤적 연출
             Vector3 startDir = Vector3.Lerp(transform.forward, targetDirection, 0.3f);
             transform.rotation = Quaternion.LookRotation(startDir);
         }
     }
 
-    // 충돌 시 부딪힌 대상과 공 둘 다 파괴
-    private void OnTriggerEnter(Collider other)
+    private void ExecuteTargetHit()
     {
-        // Player 또는 Enemy 태그를 가진 캐릭터에 부딪혔을 때
-        if (other.CompareTag("Player") || other.CompareTag("Enemy"))
+        if (destroyEffectPrefab != null)
         {
-            Debug.Log("Collision Detected! Destroying: " + other.name + " and Ball.");
-
-            if (destroyEffectPrefab != null)
-            {
-                Instantiate(destroyEffectPrefab, transform.position, Quaternion.identity);
-            }
-
-            // 1. 부딪힌 캐릭터 파괴
-            Destroy(other.gameObject);
-
-            // 2. 공 오브젝트 파괴
-            Destroy(gameObject);
+            Instantiate(destroyEffectPrefab, transform.position, Quaternion.identity);
         }
+
+        string hitTag = targetTransform.tag;
+
+        // GameManager.GM 으로 충돌/모호성 없이 안전하게 연결!
+        if (GameManager.GM != null)
+        {
+            GameManager.GM.OnCharacterDied(hitTag);
+        }
+
+        gameObject.SetActive(false);
+    }
+
+    public float GetCurrentSpeed()
+    {
+        return currentSpeed;
     }
 }
