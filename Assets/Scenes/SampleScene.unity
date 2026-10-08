@@ -171,6 +171,42 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6833988242422184103, guid: 8a8dee71d718ec441bcc604ed61c51a6, type: 3}
+      propertyPath: ballScript
+      value: 
+      objectReference: {fileID: 1202629828}
+    - target: {fileID: 6833988242422184103, guid: 8a8dee71d718ec441bcc604ed61c51a6, type: 3}
+      propertyPath: playerAnimator
+      value: 
+      objectReference: {fileID: 1449960265}
+    - target: {fileID: 8729539768830621401, guid: 8a8dee71d718ec441bcc604ed61c51a6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9999994
+      objectReference: {fileID: 0}
+    - target: {fileID: 8729539768830621401, guid: 8a8dee71d718ec441bcc604ed61c51a6, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.00012253337
+      objectReference: {fileID: 0}
+    - target: {fileID: 8729539768830621401, guid: 8a8dee71d718ec441bcc604ed61c51a6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.0010384554
+      objectReference: {fileID: 0}
+    - target: {fileID: 8729539768830621401, guid: 8a8dee71d718ec441bcc604ed61c51a6, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.00042756004
+      objectReference: {fileID: 0}
+    - target: {fileID: 8729539768830621401, guid: 8a8dee71d718ec441bcc604ed61c51a6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -0.014
+      objectReference: {fileID: 0}
+    - target: {fileID: 8729539768830621401, guid: 8a8dee71d718ec441bcc604ed61c51a6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0.119
+      objectReference: {fileID: 0}
+    - target: {fileID: 8729539768830621401, guid: 8a8dee71d718ec441bcc604ed61c51a6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -0.049
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -684,6 +720,22 @@ Transform:
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1291819526686505826, guid: c43824d16bb236f43b34ae63c5eb4a35, type: 3}
   m_PrefabInstance: {fileID: 2053324706}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1202629828 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1186062509572459904, guid: c43824d16bb236f43b34ae63c5eb4a35, type: 3}
+  m_PrefabInstance: {fileID: 2053324706}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1202629827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8830b5c96c3c01546b5b0948d956913a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+--- !u!95 &1449960265 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 8729539768823421177, guid: 8a8dee71d718ec441bcc604ed61c51a6, type: 3}
+  m_PrefabInstance: {fileID: 166224131}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1523437181
 GameObject:

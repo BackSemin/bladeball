@@ -6,8 +6,9 @@ public class PlayerParry : MonoBehaviour
     public float parryReachTime = 3.0f; // 공이 플레이어에게 도착하기까지 남은 예상 시간 (3초 이내여야 인정)
     public float cooldownTime = 5.0f;   // 패링 실패/성공 후 쿨타임 (5초)
 
-    [Header("참조 스크립트")]
+    [Header("참조 스크립트 및 애니메이터")]
     public BallController ballScript;   // 씬 안의 공 스크립트
+    public Animator playerAnimator;     // ★ 추가: 플레이어 애니메이터
 
     private float cooldownTimer = 0.0f;
 
@@ -33,6 +34,12 @@ public class PlayerParry : MonoBehaviour
         {
             Debug.Log("Parry on Cooldown! Remaining time: " + cooldownTimer.ToString("F1") + "s");
             return;
+        }
+
+        // ★ 추가: 스페이스바를 누르는 즉시 패링 애니메이션 재생!
+        if (playerAnimator != null)
+        {
+            playerAnimator.SetTrigger("doParry"); // 애니메이터 파라미터 이름과 맞춰주세요
         }
 
         // 공 스크립트가 연결되지 않은 경우 자동으로 씬에서 탐색
