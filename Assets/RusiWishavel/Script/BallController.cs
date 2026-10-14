@@ -88,7 +88,7 @@ public class BallController : MonoBehaviour
         if (allTargets.Count > 0)
         {
             int randomIndex = Random.Range(0, allTargets.Count);
-            SetNewTarget(allTargets[randomIndex].transform);
+            SetNewTarget(GetRootTarget(allTargets[randomIndex].transform));
         }
     }
 
@@ -110,7 +110,8 @@ public class BallController : MonoBehaviour
             GameObject playerObj = GameObject.FindWithTag("Player");
             if (playerObj != null)
             {
-                nextTarget = playerObj.transform;
+                // ★ 자식 오브젝트가 잡히더라도 최상위 부모(Player) Transform을 타겟으로 지정
+                nextTarget = GetRootTarget(playerObj.transform);
             }
         }
 
@@ -119,6 +120,13 @@ public class BallController : MonoBehaviour
             currentSpeed = Mathf.Min(currentSpeed * speedMultiplier, maxSpeed);
             SetNewTarget(nextTarget);
         }
+    }
+
+    // 최상위 부모 Transform 가져오기 방어 메서드
+    private Transform GetRootTarget(Transform target)
+    {
+        if (target == null) return null;
+        return target.root != null ? target.root : target;
     }
 
     private void SetNewTarget(Transform newTarget)
@@ -141,9 +149,9 @@ public class BallController : MonoBehaviour
             Instantiate(destroyEffectPrefab, transform.position, Quaternion.identity);
         }
 
+        // 최상위 태그 기반 사망 처리
         string hitTag = targetTransform.tag;
 
-        // GameManager.GM 으로 충돌/모호성 없이 안전하게 연결!
         if (GameManager.GM != null)
         {
             GameManager.GM.OnCharacterDied(hitTag);

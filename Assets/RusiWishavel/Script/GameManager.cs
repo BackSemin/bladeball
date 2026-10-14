@@ -38,6 +38,51 @@ public class GameManager : MonoBehaviour
         StartNewGame();
     }
 
+    // ★ 발표/시연용 치트키 입력 감지
+    void Update()
+    {
+        // 1. [F1] 키: 현재 살아있는 모든 봇 처치 후 다음 웨이브로 스킵
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            Debug.Log("<color=yellow>[CHEAT] F1 입력: 모든 봇 처치 및 다음 웨이브로 스킵!</color>");
+            CheatClearAllBotsAndNextWave();
+        }
+
+        // 2. [F2] 키: 웨이브 1(봇 1마리) 상태로 완전히 리셋 및 초기화
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            Debug.Log("<color=cyan>[CHEAT] F2 입력: 1웨이브(봇 1마리)로 초기화!</color>");
+            CheatResetToWaveOne();
+        }
+    }
+
+    // 치트키 1: 즉시 다음 웨이브 진행
+    private void CheatClearAllBotsAndNextWave()
+    {
+        // 예약된 Invoke 지우기 (중복 실행 방지)
+        CancelInvoke(nameof(StartNextWave));
+        CancelInvoke(nameof(RelocateBallOnly));
+
+        // 모든 봇 파괴
+        ClearExistingBots();
+
+        // 웨이브 증가 및 소환
+        currentWave++;
+        Debug.Log($"[CHEAT] WAVE CLEAR! Wave {currentWave} ({currentWave}마리) 스폰 중...");
+
+        SpawnWaveBots();
+        RelocateBallOnly();
+    }
+
+    // 치트키 2: Wave 1로 완전 초기화
+    private void CheatResetToWaveOne()
+    {
+        CancelInvoke(nameof(StartNextWave));
+        CancelInvoke(nameof(RelocateBallOnly));
+
+        StartNewGame();
+    }
+
     // 게임 시작 (웨이브 1 초기화)
     public void StartNewGame()
     {

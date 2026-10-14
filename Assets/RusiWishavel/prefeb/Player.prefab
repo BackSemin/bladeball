@@ -206,9 +206,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aaca65f3f6c876f41abe1b0ca5b53a53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerParry
+  parryDuration: 3
+  totalCooldown: 5
   parryReachTime: 3
-  cooldownTime: 5
   ballScript: {fileID: 0}
+  playerAnimator: {fileID: 0}
+  parryTriggerName: doParry
 --- !u!1 &5637764221131993570
 GameObject:
   m_ObjectHideFlags: 0
@@ -254,11 +257,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   playerObj: {fileID: 0}
-  botObj: {fileID: 0}
   ballObj: {fileID: 0}
+  botPrefab: {fileID: 0}
   ballSpawnPos: {x: 0, y: 10, z: 0}
   spawnRadius: 8
   characterY: 0.5
+  currentWave: 1
 --- !u!1 &8729539768830716417
 GameObject:
   m_ObjectHideFlags: 0
