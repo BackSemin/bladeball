@@ -179,6 +179,10 @@ PrefabInstance:
       propertyPath: playerAnimator
       value: 
       objectReference: {fileID: 1449960265}
+    - target: {fileID: 8729539768823619315, guid: 8a8dee71d718ec441bcc604ed61c51a6, type: 3}
+      propertyPath: _random
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8729539768830621401, guid: 8a8dee71d718ec441bcc604ed61c51a6, type: 3}
       propertyPath: m_LocalRotation.w
       value: 0.9999994
